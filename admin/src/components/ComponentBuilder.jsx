@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live";
 
 export default function ComponentBuilder({ token, onSuccess }) {
   const [step, setStep] = useState("basic");
@@ -8,7 +9,7 @@ export default function ComponentBuilder({ token, onSuccess }) {
     label: "",
     category: "",
     description: "",
-    template: "", 
+    code: "", 
     installSteps: "",
     props: [],
   });
@@ -26,8 +27,27 @@ export default function ComponentBuilder({ token, onSuccess }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCodeChange = (e) => {
-    // Remove handleCodeChange, not needed
+  const handleCodeChange = (code) => {
+    setFormData(prev => ({ ...prev, code }));
+    // Automatically extract props from code
+    extractPropsFromCode(code);
+  };
+
+  const extractPropsFromCode = (code) => {
+    // Simple regex to find props in function signature
+    const match = code.match(/function\s+\w+\s*\(\s*\{\s*([^}]*)\s*\}\s*\)/);
+    if (match) {
+      const propsStr = match[1];
+      const props = propsStr.split(',').map(p => p.trim()).filter(p => p);
+      const extractedProps = props.map(prop => ({
+        name: prop,
+        label: prop.charAt(0).toUpperCase() + prop.slice(1),
+        type: "text",
+        default: "",
+        options: [],
+      }));
+      setFormData(prev => ({ ...prev, props: extractedProps }));
+    }
   };
 
   const handleInstallChange = (e) => {
@@ -66,8 +86,8 @@ export default function ComponentBuilder({ token, onSuccess }) {
 
     try {
       // Only send allowed fields
-      const { name, label, category, description, template, installSteps, props } = formData;
-      const payload = { name, label, category, description, template, installSteps, props };
+      const { name, label, category, description, code, installSteps, props } = formData;
+      const payload = { name, label, category, description, template: code, installSteps, props };
       const response = await axios.post(
         "http://localhost:5000/api/admin/components/create",
         payload,
@@ -187,15 +207,24 @@ export default function ComponentBuilder({ token, onSuccess }) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold mb-2">Component Code (JSX)</label>
-              <textarea
-                value={formData.code}
-                onChange={handleCodeChange}
-                placeholder={`export default function ${formData.name || "MyComponent"}(props) {
-  return <div>{props.children}</div>;
-}`}
-                rows="12"
-                className="w-full rounded-lg border border-slate-300 px-4 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
-              />
+              <LiveProvider code={formData.code} scope={{ React }}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <LiveEditor
+                      onChange={handleCodeChange}
+                      className="w-full rounded-lg border border-slate-300 p-4 font-mono text-sm"
+                      style={{ minHeight: "300px" }}
+                    />
+                    <LiveError className="text-red-500 mt-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Live Preview</label>
+                    <div className="border border-slate-300 rounded-lg p-4 bg-white min-h-[300px]">
+                      <LivePreview />
+                    </div>
+                  </div>
+                </div>
+              </LiveProvider>
             </div>
 
             <div>
