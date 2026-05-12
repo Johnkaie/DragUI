@@ -2,18 +2,14 @@ import { useState, useContext } from "react";
 import { loginAPI, googleLogin, githubLogin } from "../api/auth";
 import { AuthContext } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
-import { FaBeer, FaGithub } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 import { 
   Mail, 
   Lock, 
   LogIn, 
-  // Github, 
   MailIcon,
   Loader2,
-  AlertCircle,
-  GitCommit,
-  GitFork,
-  GitGraphIcon
+  AlertCircle
 } from "lucide-react";
 import Background from "../components/Background";
 
@@ -60,7 +56,7 @@ export default function Login() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             DropUI
           </h1>
-          <p className="text-gray-500 mt-2">Sign / Signup in to your account</p>
+          <p className="text-gray-500 mt-2">Sign in / Sign up to your account</p>
         </div>
 
         {error && (
@@ -176,7 +172,7 @@ export default function Login() {
         <p className="text-center text-sm text-gray-500 mt-6">
           By continuing you are agreeing to our{" "}
           <button className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
-            Privacy & policy.
+            Privacy Policy.
           </button>
         </p>
       </div>

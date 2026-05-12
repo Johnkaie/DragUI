@@ -4,7 +4,7 @@ import Builder from "./pages/Builder";
 import ProtectedRoute from "./middleware/ProtectedRoute";
 import AuthSuccess from "./pages/AuthSuccess";
 import Dashboard from "./pages/Dashboard";
-import CliLogin from "./pages/CliLoign";
+import CliLogin from "./pages/CliLogin";
 
 export default function App() {
   return (
