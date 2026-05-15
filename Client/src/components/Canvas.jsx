@@ -3,8 +3,6 @@ import Renderer from "./Renderer";
 
 export default function Canvas({ tree }) {
   const { setNodeRef, isOver } = useDroppable({ id: "canvas" });
-  
-  console.log("🎨 Canvas droppable:", { isOver, nodeRef: !!setNodeRef });
 
   return (
     <div

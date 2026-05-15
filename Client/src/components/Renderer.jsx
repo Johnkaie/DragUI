@@ -17,7 +17,7 @@ export default function Renderer({ node }) {
   };
 
   // CSS-only properties that should not be spread as DOM attributes
-  const CSS_STYLE_KEYS = [
+  const CSS_STYLE_KEYS = new Set([
     "color",
     "backgroundColor",
     "fontSize",
@@ -32,35 +32,38 @@ export default function Renderer({ node }) {
     "borderRadius",
     "boxShadow",
     "minHeight",
-  ];
+    "maxHeight",
+    "minWidth",
+    "maxWidth",
+    "gap",
+    "flexDirection",
+    "justifyContent",
+    "alignItems",
+    "alignContent",
+    "flexWrap",
+  ]);
 
-  // Extract CSS props from node.props
-  const cssProps = {
-    color: node.props?.color,
-    backgroundColor: node.props?.backgroundColor,
-    fontSize: node.props?.fontSize ? mapFontSize(node.props.fontSize) : undefined,
-    textAlign: node.props?.textAlign,
-    fontWeight: node.props?.fontWeight,
-    padding: node.props?.padding,
-    margin: node.props?.margin,
-    width: node.props?.width,
-    height: node.props?.height,
-    display: node.props?.display,
-    border: node.props?.border,
-    borderRadius: node.props?.borderRadius,
-    boxShadow: node.props?.boxShadow,
-    minHeight: node.props?.minHeight,
-  };
+  const { style: nodeCustomStyle, children, className, ...rawProps } = node.props || {};
+  const cssProps = {};
+  const domProps = {};
 
-  // Filter out undefined values
+  Object.entries(rawProps).forEach(([key, value]) => {
+    if (CSS_STYLE_KEYS.has(key)) {
+      cssProps[key] = value;
+    } else {
+      domProps[key] = value;
+    }
+  });
+
   const cleanCssProps = Object.fromEntries(
     Object.entries(cssProps).filter(([_, v]) => v !== undefined)
   );
 
   const style = {
+    ...nodeCustomStyle,
     ...cleanCssProps,
     outline: selectedId === node.id ? "2px solid #06b6d4" : "none",
-    backgroundColor: isOver && node.type === "Container" ? "#e0f2fe" : cleanCssProps.backgroundColor,
+    backgroundColor: isOver && node.type === "Container" ? "#e0f2fe" : nodeCustomStyle?.backgroundColor ?? cleanCssProps.backgroundColor,
     cursor: isRoot ? "default" : "pointer",
     userSelect: "none",
     minHeight: isUnknown ? "64px" : undefined,
@@ -69,21 +72,22 @@ export default function Renderer({ node }) {
     padding: isUnknown ? "12px" : undefined,
   };
 
-  // Filter out CSS props from regular props to avoid DOM attribute warnings
-  const domProps = Object.fromEntries(
-    Object.entries(node.props || {}).filter(([key]) => !CSS_STYLE_KEYS.includes(key) && key !== "children")
+  const domPropsWithoutStyle = Object.fromEntries(
+    Object.entries(domProps).filter(([key]) => key !== "style")
   );
+
+  const componentClassName = [className, selectedId === node.id ? "outline-2" : "", isOver && node.type === "Container" ? "outline-2 outline-cyan-400" : ""]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <Comp
       ref={setNodeRef}
-      {...domProps}
+      {...domPropsWithoutStyle}
       onClick={handleClick}
       onMouseDown={(e) => e.stopPropagation()}
       style={style}
-      className={`${node.props?.className || ""} ${
-        selectedId === node.id ? "outline-2" : ""
-      } ${isOver && node.type === "Container" ? "outline-2 outline-cyan-400" : ""}`}
+      className={componentClassName}
     >
       {isUnknown && !node.children?.length ? (
         <div className="text-xs text-slate-500">Unknown component: {node.type}</div>
