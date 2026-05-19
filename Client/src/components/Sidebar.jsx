@@ -44,6 +44,40 @@ function ToolItem({ comp, index }) {
 
   const Comp = components[comp.type];
 
+  // Filter out CSS-only properties to avoid DOM attribute warnings
+  const CSS_STYLE_KEYS = new Set([
+    "color",
+    "backgroundColor",
+    "fontSize",
+    "textAlign",
+    "fontWeight",
+    "padding",
+    "margin",
+    "width",
+    "height",
+    "display",
+    "border",
+    "borderRadius",
+    "boxShadow",
+    "minHeight",
+    "maxHeight",
+    "minWidth",
+    "maxWidth",
+    "gap",
+    "flexDirection",
+    "justifyContent",
+    "alignItems",
+    "alignContent",
+    "flexWrap",
+  ]);
+
+  const cleanProps = {};
+  Object.entries(comp.defaultProps || {}).forEach(([key, value]) => {
+    if (!CSS_STYLE_KEYS.has(key)) {
+      cleanProps[key] = value;
+    }
+  });
+
   return (
     <div
       ref={setNodeRef}
@@ -60,7 +94,7 @@ function ToolItem({ comp, index }) {
     >
       <div className="flex flex-col items-center">
         <div className="w-full h-20 flex items-center justify-center border border-gray-200 rounded bg-gray-50 overflow-hidden">
-          {Comp ? <Comp {...comp.defaultProps} /> : <DynamicToolPreview label={comp.label} props={comp.defaultProps} />}
+          {Comp ? <Comp {...cleanProps} /> : <DynamicToolPreview label={comp.label} props={cleanProps} />}
         </div>
         <div className="mt-2 text-center">
           <div className="font-semibold text-slate-800">{comp.label}</div>
