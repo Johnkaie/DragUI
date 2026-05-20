@@ -144,15 +144,12 @@ export default function Renderer({ node }) {
 
   const previewCode = hasTemplate ? getPreviewCode(node.template, node.props) : "";
 
-  return (
-    <Comp
-      ref={setNodeRef}
-      {...domPropsWithoutStyle}
-      onClick={handleClick}
-      onMouseDown={(e) => e.stopPropagation()}
-      style={style}
-      className={componentClassName}
-    >
+  const isDomElement = typeof Comp === "string";
+  const isForwardRef = Comp && Comp.$$typeof === Symbol.for("react.forward_ref");
+  const shouldWrap = !isRoot && !isUnknown && !isDomElement && !isForwardRef;
+
+  const content = (
+    <>
       {isUnknown && hasTemplate ? (
         <div onClick={(e) => { e.stopPropagation(); selectComponent(node.id); }}>
           <LiveProvider code={previewCode} scope={{ React }} noInline>
@@ -164,6 +161,34 @@ export default function Renderer({ node }) {
       {node.children?.map((child) => (
         <Renderer key={child.id} node={child} />
       ))}
+    </>
+  );
+
+  if (shouldWrap) {
+    return (
+      <div
+        ref={setNodeRef}
+        onClick={handleClick}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={style}
+        className={componentClassName}
+      >
+        <Comp {...domPropsWithoutStyle} />
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Comp
+      ref={setNodeRef}
+      {...domPropsWithoutStyle}
+      onClick={handleClick}
+      onMouseDown={(e) => e.stopPropagation()}
+      style={style}
+      className={componentClassName}
+    >
+      {content}
     </Comp>
   );
 }

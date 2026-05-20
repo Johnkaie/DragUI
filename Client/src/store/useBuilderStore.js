@@ -77,7 +77,7 @@ export const useBuilderStore = create((set, get) => ({
       newTree.children.push(component);
     }
 
-    set({ tree: newTree });
+    set({ tree: newTree, selectedId: component.id });
   },
 
   // 🔥 UPDATE PROPS
