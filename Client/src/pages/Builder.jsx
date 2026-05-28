@@ -44,11 +44,9 @@ export default function Builder() {
 
     const parentId = over?.id === "canvas" ? "root" : over?.id || "root";
 
-    console.log("🔥 handleDragEnd", { activeId: active.id, over, type, parentId, payload });
+    // drag ended; payload determines what to add
 
-    if (!type) {
-      return;
-    }
+    if (!type) return;
 
     addComponent(parentId, {
       id: Date.now().toString(),
