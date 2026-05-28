@@ -1,4 +1,5 @@
 ﻿import { apiRequest } from "../utils/api.js";
+import fetch from "node-fetch";
 import { detectProjectType } from "../utils/detect.js";
 import fs from "fs-extra";
 
@@ -14,7 +15,20 @@ export default async function pull(...args) {
 
   let data;
   try {
-    data = await apiRequest(`/project/${projectId}`);
+    // First attempt: public project by uniqueId (no auth required)
+    try {
+      const publicRes = await fetch(`http://localhost:5000/api/project/public/${projectId}`);
+      if (publicRes.ok) {
+        data = await publicRes.json();
+      } else if (publicRes.status !== 404) {
+        // other error (e.g., 500) — throw to outer handler
+        const errText = await publicRes.text();
+        throw new Error(errText || `HTTP ${publicRes.status}`);
+      }
+    } catch (err) {
+      // fallback to authenticated endpoint
+      data = await apiRequest(`/project/${projectId}`);
+    }
   } catch (err) {
     console.log(`âŒ ${err.message}`);
     return;
