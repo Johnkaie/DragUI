@@ -51,6 +51,9 @@ export default function ComponentBuilder({ token, onSuccess }) {
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   useEffect(() => {
@@ -113,6 +116,50 @@ export default function ComponentBuilder({ token, onSuccess }) {
     setFormData(prev => ({ ...prev, code }));
     extractPropsFromCode(code);
     setIsSaved(false);
+  };
+
+  const handleAIFix = async () => {
+    try {
+      setAiLoading(true);
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/components/ai/fix",
+        { code: formData.code },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data?.code) {
+        setFormData((prev) => ({ ...prev, code: response.data.code }));
+        extractPropsFromCode(response.data.code);
+        setIsSaved(false);
+        alert("AI: Code updated from suggestion.");
+      }
+    } catch (err) {
+      alert("AI fix failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAIGenerate = async () => {
+    try {
+      if (!aiPrompt.trim()) return alert("Enter a text prompt describing the component.");
+      setAiLoading(true);
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/components/ai/generate",
+        { prompt: aiPrompt },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data?.code) {
+        setFormData((prev) => ({ ...prev, code: response.data.code }));
+        extractPropsFromCode(response.data.code);
+        setIsSaved(false);
+        setShowAIGenerator(false);
+        alert("AI: Generated component code inserted into the editor.");
+      }
+    } catch (err) {
+      alert("AI generate failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const extractPropsFromCode = (code) => {
@@ -427,8 +474,14 @@ export default function ComponentBuilder({ token, onSuccess }) {
                   <div className="code-editor-grid">
                     <div className="editor-wrapper">
                       <div className="editor-header">
-                        <span className="editor-label">Editor</span>
-                        <span className="file-name">component.jsx</span>
+                        <div className="flex items-center gap-3">
+                          <span className="editor-label">Editor</span>
+                          <span className="file-name">component.jsx</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button type="button" onClick={handleAIFix} disabled={aiLoading} className="btn btn-secondary">{aiLoading ? 'Running AI...' : 'AI Fix Code'}</button>
+                          <button type="button" onClick={() => setShowAIGenerator(true)} className="btn btn-outline">Generate from text</button>
+                        </div>
                       </div>
                       <LiveEditor
                         code={formData.code}
@@ -449,6 +502,28 @@ export default function ComponentBuilder({ token, onSuccess }) {
                     </div>
                   </div>
                 </LiveProvider>
+
+                {showAIGenerator && (
+                  <div className="ai-generator-modal">
+                    <div className="ai-generator-card">
+                      <div className="flex items-center justify-between">
+                        <h3>AI Component Generator</h3>
+                        <button onClick={() => setShowAIGenerator(false)}>✕</button>
+                      </div>
+                      <textarea
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        placeholder="Describe the component you want (layout, props, behavior, styles)..."
+                        rows={6}
+                        className="form-input"
+                      />
+                      <div className="flex items-center gap-2">
+                        <button onClick={handleAIGenerate} disabled={aiLoading} className="btn btn-primary">{aiLoading ? 'Generating...' : 'Generate'}</button>
+                        <button onClick={() => setShowAIGenerator(false)} className="btn btn-secondary">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="form-group" style={{ marginTop: "20px" }}>
                   <label className="form-label">Installation Steps (Optional)</label>
