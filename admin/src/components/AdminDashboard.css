@@ -537,3 +537,48 @@
     grid-template-columns: 1fr;
   }
 }
+.glass-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%);
+  min-height: 100vh;
+}
+
+.glass-panel, .glass-card, .glass-header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-btn, .glass-btn-primary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.glass-btn-primary {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.component-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.component-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.preview-container {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
