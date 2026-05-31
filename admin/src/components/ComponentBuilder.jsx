@@ -902,7 +902,7 @@ export default function ComponentBuilder({ token, onSuccess }) {
       }
     } catch (err) {
       alert("AI fix failed: " + (err.response?.data?.message || err.message));
-    } default {
+    } finally {
       setAiLoading(false);
     }
   };
@@ -926,7 +926,7 @@ export default function ComponentBuilder({ token, onSuccess }) {
       }
     } catch (err) {
       alert("AI generation failed: " + (err.response?.data?.message || err.message));
-    } default {
+    } finally {
       setAiLoading(false);
     }
   };
