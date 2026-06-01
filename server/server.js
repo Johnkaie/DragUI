@@ -1,57 +1,116 @@
 import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
+import session from "express-session";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
-import authRoutes from "./routes/authRoutes.js";
-import projectRoutes from "./routes/projectRoutes.js";
-import session from "express-session";
-import passport from "./config/Passport.js";
+
+import passport from "./config/passport.js";
+import connectDB from "./config/db.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(
-  session({
-    secret: "secret",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+// Security
+
 app.use(helmet());
 
+// Compression
+
 app.use(compression());
+
+// Logging
+
+app.use(morgan("dev"));
+
+// CORS
 
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "http://localhost:5174"
+      process.env.CLIENT_URL,
+      process.env.ADMIN_URL,
     ],
-    credentials: true
+
+    credentials: true,
   })
 );
 
-app.use(morgan("dev"));
+// Body Parser
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Session
+
+app.use(
+  session({
+    secret:
+      process.env.SESSION_SECRET,
+
+    resave: false,
+
+    saveUninitialized: false,
+
+    cookie: {
+      httpOnly: true,
+
+      secure: false,
+
+      maxAge:
+        1000 * 60 * 60 * 24 * 7,
+    },
+  })
+);
+
+// Passport
+
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(cors());
-app.use(express.json());
+
+// Health Check
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "DropUI API Running",
+  });
+});
+
+// Routes
+
+import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import adminAuthRoutes from "./routes/adminAuth.js";
+import componentRoutes from "./routes/componentRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+
+app.use("/api/auth", authRoutes);
 
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin-auth", adminAuthRoutes);
-import componentRoutes from "./routes/componentRoutes.js";
 
-app.use("/api/component", componentRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/project", projectRoutes);
+app.use(
+  "/api/components",
+  componentRoutes
+);
 
-mongoose.connect(process.env.MONGO_URI).then(() => {
-  console.log("✅ DB connected");
-  app.listen(5000, () => console.log("🚀 Server running on 5000"));
+app.use(
+  "/api/projects",
+  projectRoutes
+);
+
+// DB
+
+connectDB();
+
+// Start
+
+const PORT =
+  process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(
+    `🚀 Server Running On ${PORT}`
+  );
 });
