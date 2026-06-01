@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/parser": "^7.29.7",
+    "@babel/traverse": "^7.29.7",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
