@@ -1,7 +1,7 @@
 import express from "express";
 import Project from "../models/Project.js";
 import auth from "../middleware/auth.middleware.js";
-import { generateCode } from "../utils/generateCode.js";
+import { generateCode } from "../utils/extractProps.js";
 const router = express.Router();
 
 function generateUniqueId(len = 8) {
