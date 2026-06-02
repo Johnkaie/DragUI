@@ -1,40 +1,62 @@
-import * as componentService from "../services/componentService.js";
+import * as componentService
+from "../services/componentService.js";
 
-export const create = async (
+import Component
+from "../models/Component.js";
+
+export const create =
+async (
   req,
   res
 ) => {
   try {
+
     const component =
       await componentService.createComponent(
         req.body,
         req.adminId
       );
 
-    res.status(201).json(component);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    res.status(201).json({
+      success:true,
+      component
     });
+
+  } catch(error){
+
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+
   }
 };
 
-export const getAll = async (
+export const getAll =
+async (
   req,
   res
 ) => {
+
   try {
+
     const components =
       await Component.find()
-        .select(
-          "name label category type thumbnail version downloads"
-        )
-        .lean();
+      .sort({
+        createdAt:-1
+      });
 
-    res.json(components);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    res.json({
+      success:true,
+      components
     });
+
+  } catch(error){
+
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+
   }
 };
