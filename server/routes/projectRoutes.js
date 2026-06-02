@@ -8,7 +8,26 @@ from "../controllers/projectController.js";
 
 const router =
  express.Router();
+router.get(
+ "/marketplace",
+ async (
+   req,
+   res
+ ) => {
 
+   const projects =
+     await Project.find({
+       isMarketplace:true,
+       visibility:"public"
+     });
+
+   res.json({
+     success:true,
+     projects
+   });
+
+ }
+);
 router.post(
  "/",
  authMiddleware,
