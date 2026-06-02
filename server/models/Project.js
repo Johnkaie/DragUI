@@ -29,7 +29,10 @@ new mongoose.Schema(
       "fullstack",
     ],
   },
-
+isMarketplace:{
+ type:Boolean,
+ default:false
+},
   visibility: {
     type: String,
     enum: [

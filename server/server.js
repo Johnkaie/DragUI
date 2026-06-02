@@ -117,7 +117,12 @@ app.use(
  "/api/analytics",
  analyticsRoutes
 );
-
+import cliRoutes
+from "./routes/cliRoutes.js";
+app.use(
+ "/api/cli",
+ cliRoutes
+);
 app.use(
  "/api/assets",
  assetRoutes
