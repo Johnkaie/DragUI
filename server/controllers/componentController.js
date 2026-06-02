@@ -1,16 +1,15 @@
-import * as componentService
-from "../services/componentService.js";
+import Component from "../models/Component.js";
+import ComponentVersion from "../models/ComponentVersion.js";
+import * as componentService from "../services/componentService.js";
 
-import Component
-from "../models/Component.js";
+/*
+=====================================
+CREATE COMPONENT
+=====================================
+*/
 
-export const create =
-async (
-  req,
-  res
-) => {
+export const create = async (req, res) => {
   try {
-
     const component =
       await componentService.createComponent(
         req.body,
@@ -18,45 +17,393 @@ async (
       );
 
     res.status(201).json({
-      success:true,
-      component
+      success: true,
+      component,
     });
-
-  } catch(error){
-
+  } catch (error) {
     res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message,
     });
-
   }
 };
 
-export const getAll =
-async (
-  req,
-  res
-) => {
+/*
+=====================================
+GET ALL COMPONENTS
+=====================================
+*/
 
+export const getAll = async (req, res) => {
   try {
+    const page =
+      Number(req.query.page) || 1;
+
+    const limit =
+      Number(req.query.limit) || 20;
+
+    const skip =
+      (page - 1) * limit;
+
+    const total =
+      await Component.countDocuments();
 
     const components =
       await Component.find()
-      .sort({
-        createdAt:-1
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    res.json({
+      success: true,
+
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(
+          total / limit
+        ),
+      },
+
+      components,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+GET SINGLE COMPONENT
+=====================================
+*/
+
+export const getById = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findById(
+        req.params.id
+      );
+
+    if (!component) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Component not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      component,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+SEARCH
+=====================================
+*/
+
+export const search = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      q = "",
+      category,
+      type,
+      status,
+    } = req.query;
+
+    const query = {};
+
+    if (q) {
+      query.$or = [
+        {
+          name: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+        {
+          label: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    if (category)
+      query.category = category;
+
+    if (type)
+      query.type = type;
+
+    if (status)
+      query.status = status;
+
+    const components =
+      await Component.find(query)
+        .sort({
+          createdAt: -1,
+        });
+
+    res.json({
+      success: true,
+      components,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+UPDATE
+=====================================
+*/
+
+export const update = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {
+          new: true,
+        }
+      );
+
+    if (!component) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Component not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      component,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+DELETE
+=====================================
+*/
+
+export const remove = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findByIdAndDelete(
+        req.params.id
+      );
+
+    if (!component) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Component not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message:
+        "Component deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+CLONE COMPONENT
+=====================================
+*/
+
+export const clone = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findById(
+        req.params.id
+      );
+
+    if (!component) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Component not found",
+      });
+    }
+
+    const clone =
+      await Component.create({
+        ...component.toObject(),
+
+        _id: undefined,
+
+        name:
+          component.name +
+          " Copy",
+
+        slug:
+          component.slug +
+          "-copy-" +
+          Date.now(),
+
+        status: "draft",
       });
 
     res.json({
-      success:true,
-      components
+      success: true,
+      clone,
     });
-
-  } catch(error){
-
+  } catch (error) {
     res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message,
     });
-
   }
 };
+
+/*
+=====================================
+PUBLISH
+=====================================
+*/
+
+export const publish = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findByIdAndUpdate(
+        req.params.id,
+        {
+          status:
+            "published",
+        },
+        {
+          new: true,
+        }
+      );
+
+    res.json({
+      success: true,
+      component,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+DRAFT
+=====================================
+*/
+
+export const draft = async (
+  req,
+  res
+) => {
+  try {
+    const component =
+      await Component.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "draft",
+        },
+        {
+          new: true,
+        }
+      );
+
+    res.json({
+      success: true,
+      component,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/*
+=====================================
+VERSIONS
+=====================================
+*/
+
+export const getVersions =
+  async (req, res) => {
+    try {
+      const versions =
+        await ComponentVersion.find(
+          {
+            component:
+              req.params.id,
+          }
+        ).sort({
+          createdAt: -1,
+        });
+
+      res.json({
+        success: true,
+        versions,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message:
+          error.message,
+      });
+    }
+  };
