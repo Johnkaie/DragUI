@@ -127,6 +127,12 @@ app.use(
  "/api/assets",
  assetRoutes
 );
+import collaborationRoutes
+from "./routes/collaborationRoutes.js";
+app.use(
+ "/api/collaboration",
+ collaborationRoutes
+);
 import workspaceRoutes
 from "./routes/workspaceRoutes.js";
 app.use(
