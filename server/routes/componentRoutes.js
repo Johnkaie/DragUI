@@ -65,4 +65,31 @@ router.get(
   componentController.getVersions
 );
 
+router.get(
+ "/:id/health",
+ adminAuth,
+ componentController.getHealth
+);
+
+router.get(
+ "/:id/manifest",
+ async (
+   req,
+   res
+ ) => {
+
+   const manifest =
+     await ComponentManifest.findOne({
+       component:
+         req.params.id
+     });
+
+   res.json({
+     success:true,
+     manifest
+   });
+
+ }
+);
+
 export default router;
