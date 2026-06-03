@@ -1,7 +1,8 @@
 import Component from "../models/Component.js";
 import ComponentVersion from "../models/ComponentVersion.js";
 import * as componentService from "../services/componentService.js";
-
+import ComponentManifest
+from "../models/ComponentManifest.js";
 /*
 =====================================
 CREATE COMPONENT
@@ -407,3 +408,32 @@ export const getVersions =
       });
     }
   };
+  export const getHealth =
+async (
+ req,
+ res
+) => {
+
+ try {
+
+   const manifest =
+     await ComponentManifest.findOne({
+       component:
+         req.params.id
+     });
+
+   res.json({
+     success:true,
+     manifest
+   });
+
+ } catch(error){
+
+   res.status(500).json({
+     success:false,
+     message:error.message
+   });
+
+ }
+
+};
