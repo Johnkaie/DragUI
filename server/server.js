@@ -153,6 +153,13 @@ app.use(
   "/api/search",
   searchRoutes
 );
+
+import componentAnalyticsRoutes
+from "./routes/componentAnalyticsRoutes.js";
+app.use(
+ "/api/component-analytics",
+ componentAnalyticsRoutes
+);
 // DB
 
 connectDB();
