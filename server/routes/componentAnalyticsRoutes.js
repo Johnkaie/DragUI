@@ -31,4 +31,9 @@ router.get(
  analyticsController.getAnalytics
 );
 
+router.get(
+ "/trending/list",
+ analyticsController.trending
+);
+
 export default router;

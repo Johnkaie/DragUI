@@ -236,3 +236,39 @@ async (
  }
 
 };
+export const trending =
+async (
+ req,
+ res
+) => {
+
+ try {
+
+   const trending =
+     await ComponentAnalytics
+       .find()
+       .populate(
+         "component"
+       )
+       .sort({
+         downloads:-1,
+         installs:-1,
+         views:-1
+       })
+       .limit(20);
+
+   res.json({
+     success:true,
+     trending
+   });
+
+ } catch(error){
+
+   res.status(500).json({
+     success:false,
+     message:error.message
+   });
+
+ }
+
+};
