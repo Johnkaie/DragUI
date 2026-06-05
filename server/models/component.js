@@ -117,6 +117,15 @@ new mongoose.Schema(
   type: mongoose.Schema.Types.ObjectId,
   ref: "Workspace"
 },
+thumbnail: {
+  type: String,
+  default: "",
+},
+
+thumbnailPublicId: {
+  type: String,
+  default: "",
+},
   downloads: {
     type: Number,
     default: 0,
